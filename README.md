@@ -321,6 +321,41 @@ API đầy đủ xem tại [docs/API.md](docs/API.md).
 | `POST` | `/query` | Hỏi đáp, bắt buộc `X-API-Key` |
 | `POST` | `/debug/retrieve` | Debug development-only, admin key |
 
+## Chạy Docker
+
+Image được thiết kế để khởi động API độc lập. Artifact không commit vào Git và
+không được tạo giả trong image; vì vậy container chưa mount artifact sẽ trả
+`status=degraded` ở `/health` nhưng API vẫn khởi động bình thường.
+
+### Kiểm tra container
+
+~~~bash
+docker build -t vietnamese-policy-rag:local .
+docker run --rm --name vietnamese-policy-rag -p 8000:8000 vietnamese-policy-rag:local
+~~~
+
+Ở terminal khác:
+
+~~~bash
+curl http://127.0.0.1:8000/health
+~~~
+
+Muốn sử dụng `/query`, hãy build artifact trên máy trước rồi mount read-only
+vào container:
+
+~~~bash
+python scripts/download_data.py
+python scripts/validate_catalog.py
+python scripts/build_index.py --data-dir data/raw --model-dir artifacts --catalog-path configs/knowledge_catalog.yaml
+docker run --rm --name vietnamese-policy-rag -p 8000:8000 \
+  -v "$(pwd)/artifacts:/app/artifacts:ro" \
+  vietnamese-policy-rag:local
+~~~
+
+Container cần kết nối mạng ở lần đầu truy xuất để tải embedding/Cross-Encoder
+nếu model chưa có trong cache. Chi tiết request và API key xem tại
+[docs/API.md](docs/API.md).
+
 ## CI và tính tái lập
 
 Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) chạy Python 3.10

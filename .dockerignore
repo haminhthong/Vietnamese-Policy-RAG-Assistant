@@ -9,6 +9,7 @@ tests
 reports
 feedback
 data/raw
+data/evaluation
 models
 *.pyc
 *.log

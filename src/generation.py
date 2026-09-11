@@ -1,4 +1,4 @@
-"""Grounded generation, sources-only fallback và citation contract."""
+"""Sinh câu trả lời có căn cứ, chỉ nguồn và hợp đồng citation."""
 
 from __future__ import annotations
 

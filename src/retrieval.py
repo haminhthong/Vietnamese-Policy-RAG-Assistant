@@ -1,4 +1,4 @@
-"""Authorized Dense + BM25 + RRF retrieval trên ACL group indexes."""
+"""Truy xuất Dense + BM25 + RRF có kiểm soát theo nhóm ACL."""
 
 from __future__ import annotations
 
