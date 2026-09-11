@@ -200,7 +200,18 @@ def create_sample_data(data_dir: str = "data/raw") -> None:
 
     for filename, text_content in SAMPLES.items():
         file_path = output_path / filename
-        file_path.write_text(text_content.strip() + "\n", encoding="utf-8")
+        expected_content = text_content.strip() + "\n"
+        # Không ghi lại file đã đúng nội dung; cách này cũng hoạt động khi
+        # corpus được checkout ở chế độ chỉ đọc trên một số môi trường CI.
+        if file_path.is_file():
+            try:
+                if file_path.read_text(encoding="utf-8") == expected_content:
+                    LOGGER.info("Tệp tài liệu đã tồn tại: %s", file_path.name)
+                    continue
+            except OSError:
+                # Nếu không đọc được, để thao tác ghi bên dưới trả lỗi cụ thể.
+                pass
+        file_path.write_text(expected_content, encoding="utf-8")
         LOGGER.info("Đã tạo tệp tài liệu: %s", file_path.name)
 
     print(

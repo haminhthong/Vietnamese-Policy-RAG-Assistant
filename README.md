@@ -263,6 +263,9 @@ python scripts/download_data.py
 python scripts/validate_catalog.py
 ~~~
 
+`download_data.py` có thể chạy lặp lại; file đã đúng nội dung sẽ được giữ
+nguyên, còn file thiếu hoặc khác nội dung mới được tạo lại.
+
 ### 3. Build artifact
 
 ~~~bash

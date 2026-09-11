@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from .generation import ABSTAIN_PHRASE, generate_grounded_response
@@ -39,10 +39,6 @@ class RAGResult:
     citations: list[dict[str, Any]] = field(default_factory=list)
     sources: list[dict[str, Any]] = field(default_factory=list)
     debug: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        """Chuyển kết quả sang payload JSON."""
-        return asdict(self)
 
 
 def _public_source(hit: dict[str, Any]) -> dict[str, Any]:

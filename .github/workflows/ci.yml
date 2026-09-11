@@ -65,8 +65,6 @@ jobs:
           context: .
           load: true
           tags: local/vietnamese-policy-rag:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Smoke test endpoint health
         shell: bash
