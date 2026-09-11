@@ -6,17 +6,16 @@ import argparse
 import sys
 from pathlib import Path
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8")
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.catalog import load_catalog
+from src.utils import configure_utf8_console
 
 
 def main() -> None:
+    configure_utf8_console()
     parser = argparse.ArgumentParser(description="Kiểm tra Knowledge Catalog")
     parser.add_argument("--catalog", default="configs/knowledge_catalog.yaml")
     parser.add_argument("--data-dir", default="data/raw")

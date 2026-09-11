@@ -14,6 +14,16 @@ from typing import Any
 LOGGER = logging.getLogger("rag_knowledge_assistant")
 
 
+def configure_utf8_console() -> None:
+    """Tự động cấu hình sys.stdout và sys.stderr về UTF-8 trên Windows console."""
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+            sys.stderr.reconfigure(encoding="utf-8")
+        except (OSError, ValueError) as exc:
+            LOGGER.debug("Không thể đổi encoding console sang UTF-8: %s", exc)
+
+
 def setup_logging(level_name: str | None = None) -> None:
     """Cấu hình định dạng và cấp độ log, đồng thời bật UTF-8 trên Windows.
 
@@ -21,13 +31,7 @@ def setup_logging(level_name: str | None = None) -> None:
         level_name (str | None): Cấp độ log (DEBUG, INFO, WARNING, ERROR).
             Nếu bỏ trống, lấy từ biến môi trường LOG_LEVEL (mặc định INFO).
     """
-    # Tự động cấu hình sys.stdout và sys.stderr về UTF-8 trên Windows console
-    if hasattr(sys.stdout, "reconfigure"):
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-            sys.stderr.reconfigure(encoding="utf-8")
-        except (OSError, ValueError) as exc:
-            LOGGER.debug("Không thể đổi encoding console sang UTF-8: %s", exc)
+    configure_utf8_console()
 
     if level_name is None:
         level_name = os.getenv("LOG_LEVEL", "INFO").upper()

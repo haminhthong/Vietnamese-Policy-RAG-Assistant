@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import logging
 import shutil
-import sys
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -24,10 +23,16 @@ except ImportError:  # pragma: no cover - môi trường chỉ chạy unit test
     SentenceTransformer = Any  # type: ignore[misc,assignment]
 
 from .catalog import CatalogEntry, active_catalog, load_catalog
-from .config import IndexConfig
+from .config import IndexConfig, parse_args
 from .ingestion import Chunk, ingest_folder
 from .ranking import BM25Index
-from .utils import compute_file_checksum, load_json, save_json, setup_logging
+from .utils import (
+    compute_file_checksum,
+    configure_utf8_console,
+    load_json,
+    save_json,
+    setup_logging,
+)
 
 LOGGER = logging.getLogger("rag_knowledge_assistant.index")
 
@@ -232,43 +237,8 @@ def build_index(config: IndexConfig | None = None) -> dict[str, Any]:
 
 def main() -> None:
     """CLI build artifact hiện hành."""
-    import argparse
-
-    # Windows mặc định có thể dùng code page không chứa tiếng Việt.
-    for stream in (sys.stdout, sys.stderr):
-        reconfigure = getattr(stream, "reconfigure", None)
-        if reconfigure is not None:
-            reconfigure(encoding="utf-8")
-
-    parser = argparse.ArgumentParser(description="Xây dựng artifact cho Vietnamese Policy RAG")
-    parser.add_argument("--data-dir", default="data/raw", help="Thư mục tài liệu gốc")
-    parser.add_argument("--model-dir", default="artifacts", help="Thư mục artifact")
-    parser.add_argument(
-        "--catalog-path", default="configs/knowledge_catalog.yaml", help="Catalog YAML"
-    )
-    parser.add_argument("--chunk-words", type=int, default=250, help="Số từ mục tiêu mỗi chunk")
-    parser.add_argument("--overlap-words", type=int, default=40, help="Số từ overlap")
-    parser.add_argument(
-        "--strategy",
-        choices=["structure_aware", "sliding_window"],
-        default="structure_aware",
-        help="structure_aware là cấu hình chuẩn; sliding_window chỉ dùng làm baseline",
-    )
-    parser.add_argument("--embedding-model", default=IndexConfig.embedding_model)
-    parser.add_argument("--candidate-pool-k", type=int, default=30)
-    args = parser.parse_args()
-    build_index(
-        IndexConfig(
-            data_dir=args.data_dir,
-            model_dir=args.model_dir,
-            catalog_path=args.catalog_path,
-            chunk_words=args.chunk_words,
-            overlap_words=args.overlap_words,
-            strategy=args.strategy,
-            embedding_model=args.embedding_model,
-            candidate_pool_k=args.candidate_pool_k,
-        )
-    )
+    configure_utf8_console()
+    build_index(parse_args())
 
 
 if __name__ == "__main__":

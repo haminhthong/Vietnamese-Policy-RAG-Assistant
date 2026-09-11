@@ -118,6 +118,28 @@ def test_context_escapes_untrusted_xml_content():
     assert "&amp; dữ liệu" in formatted
 
 
+def test_security_adversarial_prompt_injection_dataset():
+    """Kiểm tra toàn bộ mẫu trong security.json được xử lý an toàn."""
+    from pathlib import Path
+
+    security_file = Path("data/evaluation/security.json")
+    if not security_file.exists():
+        pytest.skip("Không tìm thấy security.json")
+    cases = json.loads(security_file.read_text(encoding="utf-8"))
+    assert len(cases) >= 3
+    for case in cases:
+        injected = case["injected_evidence"]
+        hits = [{"source": "security_guide.txt", "text": injected}]
+        formatted = format_context_for_prompt(hits)
+        # Bắt buộc chuỗi escape XML bảo vệ khung evidence
+        assert '<evidence id="C1"' in formatted
+        assert "</evidence>" in formatted
+        # Nếu injection có chứa tag XML thì phải bị escape
+        if "<instruction>" in injected:
+            assert "<instruction>" not in formatted
+            assert "&lt;instruction&gt;" in formatted
+
+
 def test_unauthorized_document_never_reaches_retrieval():
     """Chunk ngoài quyền không được vào candidate dù BM25 trả nó ở rank cao."""
     from src.retrieval import Retriever

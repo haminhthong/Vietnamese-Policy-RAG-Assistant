@@ -141,10 +141,22 @@ def run_chunk_ablation(
 
 
 def main() -> None:
+    import argparse
+
     setup_logging()
-    benchmark_path = PROJECT_ROOT / "data/evaluation/synthetic_regression.json"
+    parser = argparse.ArgumentParser(description="Ablation experiments cho retrieval và chunking")
+    parser.add_argument(
+        "--benchmark",
+        default="data/evaluation/questions.json",
+        help="Đường dẫn tới file benchmark JSON (mặc định: data/evaluation/questions.json)",
+    )
+    args = parser.parse_args()
+    raw_path = Path(args.benchmark)
+    benchmark_path = raw_path if raw_path.is_absolute() else PROJECT_ROOT / raw_path
     if not benchmark_path.exists():
-        benchmark_path = PROJECT_ROOT / "data/evaluation/questions.json"
+        fallback_path = PROJECT_ROOT / "data/evaluation/synthetic_regression.json"
+        if fallback_path.exists():
+            benchmark_path = fallback_path
     cases = load_benchmark(benchmark_path)
     dev_cases = [case for case in cases if case.split == "dev"]
     retriever = Retriever(model_dir=PROJECT_ROOT / "artifacts", use_reranker=True)

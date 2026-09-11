@@ -11,16 +11,8 @@ if str(ROOT) not in sys.path:
 
 from src.config import parse_args
 from src.index import build_index
-
-
-def _configure_console_utf8() -> None:
-    """Bảo đảm trợ giúp CLI hiển thị đúng tiếng Việt trên Windows."""
-    for stream in (sys.stdout, sys.stderr):
-        reconfigure = getattr(stream, "reconfigure", None)
-        if reconfigure is not None:
-            reconfigure(encoding="utf-8")
-
+from src.utils import configure_utf8_console
 
 if __name__ == "__main__":
-    _configure_console_utf8()
+    configure_utf8_console()
     build_index(parse_args())

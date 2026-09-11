@@ -12,15 +12,13 @@ import logging
 import sys
 from pathlib import Path
 
-# Đảm bảo Windows console in đúng UTF-8 không bị lỗi charmap
-if hasattr(sys.stdout, "reconfigure"):
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
-    except (OSError, ValueError):
-        pass
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+from src.utils import setup_logging
+
+setup_logging()
 LOGGER = logging.getLogger("download_data")
 
 SAMPLES: dict[str, str] = {
