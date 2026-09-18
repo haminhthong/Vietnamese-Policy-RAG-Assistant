@@ -1,15 +1,15 @@
 # Vietnamese Policy RAG
 
-[![CI](https://github.com/haminhthong/Enterprise-Rag-Assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/haminhthong/Enterprise-Rag-Assistant/actions/workflows/ci.yml)
+[![CI](https://github.com/haminhthong/Vietnamese-Policy-RAG-Assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/haminhthong/Vietnamese-Policy-RAG-Assistant/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![FAISS](https://img.shields.io/badge/FAISS-1.11.0-005571.svg)](https://github.com/facebookresearch/faiss)
+[![FAISS](https://img.shields.io/badge/FAISS-1.11.0.post1-005571.svg)](https://github.com/facebookresearch/faiss)
 [![BM25](https://img.shields.io/badge/BM25-rank__bm25-6f42c1.svg)](https://github.com/dorianbrown/rank_bm25)
 
-RAG tra cứu chính sách nội bộ bằng tiếng Việt. Version/effective-date được xử
-lý trước retrieval, ACL được lọc trước candidate, Dense và BM25 hợp nhất bằng
-RRF, sau đó Cross-Encoder rerank và evidence threshold quyết định có tạo câu
-trả lời hay không.
+RAG tra cứu chính sách nội bộ bằng tiếng Việt. Version/effective-date được lọc
+ở pipeline offline trước retrieval, ACL được lọc trước candidate, Dense và
+BM25 hợp nhất bằng RRF, sau đó Cross-Encoder rerank và evidence threshold
+quyết định có tạo câu trả lời hay không.
 
 ## Bài Toán & Phạm Vi Ứng Dụng (Problem & Scope)
 
@@ -45,6 +45,7 @@ flowchart TD
         Q --> K["Structure-aware chunks"]
         K --> I["Dense + BM25 per ACL group"]
         I --> A["artifacts/groups/<group>"]
+        I --> M["artifacts/config.json + documents.json"]
         A --> V["Count validation"]
     end
 
@@ -68,6 +69,7 @@ flowchart TD
     end
 
     A -. loaded by .-> F
+    M -. loaded by .-> F
     B["Dev/Test evaluation queries"] --> T["Dev tuning + Test report"]
     T --> J["reports/*.json"]
 ~~~
@@ -221,28 +223,38 @@ Rag-Knowledge-Assistant/
 │   ├── evaluate.py                   # Dev tuning + Test report
 │   └── ablation_experiments.py       # Baseline trên Dev
 ├── src/
+│   ├── __init__.py
 │   ├── ingestion/
+│   │   ├── __init__.py
 │   │   ├── parsers.py                # TXT/MD/PDF/DOCX
 │   │   ├── chunking.py               # Structure-aware + baseline
 │   │   └── models.py                 # Chunk và DocumentBlock
 │   ├── catalog.py                    # Document catalog
+│   ├── config.py                     # Cấu hình index và retrieval
+│   ├── utils.py                      # JSON, logging, checksum
 │   ├── security.py                   # API key -> AccessContext
 │   ├── index.py                      # Build artifact theo ACL group
 │   ├── ranking.py                    # BM25, RRF, Cross-Encoder
 │   ├── retrieval.py                  # ACL-filtered retrieval
 │   ├── generation.py                 # Grounded prompt/citation checks
 │   ├── service.py                    # answer/sources_only/abstain
-│   ├── api.py                        # FastAPI: /health, /query
+│   ├── api.py                        # FastAPI: /health, /query, /debug/retrieve
 │   └── evaluate.py                   # Metrics và threshold tuning
 ├── tests/
 │   ├── test_catalog_and_access.py
 │   ├── test_chunking.py
 │   ├── test_retrieval.py
+│   ├── test_service.py
 │   └── test_smoke.py
 ├── .github/workflows/ci.yml          # Lint, test, Docker smoke test
+├── .dockerignore
+├── .env.example                       # Biến môi trường mẫu
+├── .gitignore
 ├── Dockerfile
 ├── Makefile
 ├── pyproject.toml
+├── pytest.ini
+├── requirements.txt
 └── LICENSE
 ~~~
 
@@ -255,6 +267,9 @@ Yêu cầu Python `3.10+`:
 ~~~bash
 python -m pip install -r requirements.txt
 ~~~
+
+`requirements.txt` cố định PyTorch bản CPU để Docker và CI không tải CUDA
+runtime; GPU không phải yêu cầu của pipeline hiện tại.
 
 ### 2. Tạo và validate corpus
 

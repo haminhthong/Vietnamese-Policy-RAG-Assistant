@@ -33,8 +33,9 @@ key. Production không có fallback này.
 
 ### `GET /health`
 
-Không cần xác thực. Endpoint chỉ kiểm tra artifact hiện hành có `config.json`
-và các group index đầy đủ hay không; không tải embedding model.
+Không cần xác thực. Endpoint chỉ kiểm tra artifact hiện hành có `config.json`,
+`documents.json`, danh sách group khớp cấu hình và đủ ba file index cho từng
+group hay không; không tải embedding model.
 
 ```json
 {
@@ -45,8 +46,9 @@ và các group index đầy đủ hay không; không tải embedding model.
 }
 ```
 
-`status` là `ok` khi artifact có đủ `config.json` và các file
-`index.faiss`, `chunks.json`, `bm25_index.json` cho mọi group.
+`status` là `ok` khi artifact có đủ `config.json`, `documents.json` và các file
+`index.faiss`, `chunks.json`, `bm25_index.json` cho mọi group; danh sách group
+trên filesystem cũng phải khớp `config.json`.
 
 ### `POST /query`
 
@@ -84,7 +86,17 @@ Response user-facing gồm `request_id`, `mode`, `answer`, `citations` và
       "quote": "..."
     }
   ],
-  "sources": []
+  "sources": [
+    {
+      "chunk_id": "...",
+      "document_id": "...",
+      "source": "annual_leave_policy_2026.txt",
+      "source_path": "annual_leave_policy_2026.txt",
+      "page": null,
+      "section": "Tiêu chuẩn phép năm",
+      "version": "v2026"
+    }
+  ]
 }
 ```
 
